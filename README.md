@@ -48,10 +48,10 @@ Crea el archivo `.env` en la raíz. **Es crítico que las credenciales sean las 
 
 **Archivo: `.env`**
 ```ini
-DB_HOST=swapi-db.cluster-xyz.us-east-1.rds.amazonaws.com
+DB_HOST=database-swapi.ci54eqae82ye.us-east-1.rds.amazonaws.com
 DB_USER=admin
-DB_PASSWORD=tu_password_secreto
-DB_NAME=swapi_db
+DB_NAME=SWAPI_DB_tec_test
+DB_PASSWORD=adrian123
 ```
 
 ---
