@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "ES2022", /* Versión para Node.js 20 */
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true, /* Para un código más seguro y profesional */
+    "esModuleInterop": true, /* Evita errores al importar Axios o MySQL */
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "forceConsistentCasingInFileNames": true,
+    "types": [
+      "node",
+      "aws-lambda",
+      "jest"
+    ] /* Esto conecta tus librerías de tipos con el editor */
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    ".serverless"
+  ]
+}

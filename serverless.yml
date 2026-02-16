@@ -1,0 +1,81 @@
+service: Swapi-Lambda-http-api-post
+useDotenv: true
+
+plugins:
+  - serverless-auto-swagger
+  - serverless-esbuild        # Para que reconozca tus archivos .ts
+  - serverless-dotenv-plugin   # Para leer tu archivo .env
+
+custom:
+  autoswagger:
+    title: 'SWAPI Lambda API (POST)'
+    apiType: 'http'
+    generateSwaggerOnDeploy: true
+    basePath: '/'
+    typefiles: []
+    host: 'lvryteny8c.execute-api.us-east-1.amazonaws.com'
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+  httpApi:
+    cors:
+      allowedOrigins:
+        - '*'
+      allowedHeaders:
+        - Content-Type
+        - X-Amz-Date
+        - Authorization
+        - X-Api-Key
+        - X-Amz-Security-Token
+      allowedMethods:
+        - POST
+        - DELETE
+        - OPTIONS
+  environment:
+    # Necesitas estas variables para que el repositorio se conecte
+    DB_HOST: ${env:DB_HOST}
+    DB_USER: ${env:DB_USER}
+    DB_PASSWORD: ${env:DB_PASSWORD}
+    DB_NAME: ${env:DB_NAME}
+
+functions:
+  createFavorite:
+    handler: src/handlers/createFavorite.handler
+    events:
+      - httpApi:
+          path: /api/favorites
+          method: post # Solo acepta POST
+          description: 'Crear un nuevo personaje favorito'
+          summary: 'Create Favorite'
+          body:
+            description: 'Datos del personaje a guardar'
+            schema:
+              type: object
+              properties:
+                id: { type: string }
+                name: { type: string }
+                height: { type: string }
+                mass: { type: string }
+                gender: { type: string }
+              required: ['id', 'name']
+
+  deleteFavorite:
+    handler: src/handlers/deleteFavorite.handler
+    events:
+      - httpApi:
+          path: /api/favorites/{id}
+          method: delete # Solo acepta DELETE
+          description: 'Eliminar personaje favorito por ID'
+          summary: 'Delete Favorite'
+
+  migrateFavorites:
+    handler: src/handlers/migrateFavorites.handler
+    timeout: 30
+    events:
+      - httpApi:
+          path: /api/migrate
+          method: get # Ejecutar con GET /api/migrate
+          description: 'Ejecutar script de migración SQL para la tabla de favoritos'
+          summary: 'Migrate DB'
