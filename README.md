@@ -1,69 +1,147 @@
-<!--
-title: 'AWS Simple HTTP Endpoint example in NodeJS'
-description: 'This template demonstrates how to make a simple HTTP API with Node.js running on AWS Lambda and API Gateway using the Serverless Framework.'
-layout: Doc
-framework: v4
-platform: AWS
-language: nodeJS
-authorLink: 'https://github.com/serverless'
-authorName: 'Serverless, Inc.'
-authorAvatar: 'https://avatars1.githubusercontent.com/u/13742415?s=200&v=4'
--->
+# 🌐 SWAPI Lambda API (POST) - Serverless Service
 
-# Serverless Framework Node HTTP API on AWS
+Bienvenido al microservicio **POST** de la Prueba Técnica Seidor. Este proyecto maneja la persistencia de datos, permitiendo **Guardar** y **Eliminar** personajes favoritos, además de incluir herramientas de **Migración** automática de base de datos.
 
-This template demonstrates how to make a simple HTTP API with Node.js running on AWS Lambda and API Gateway using the Serverless Framework.
+## 🏗️ Arquitectura y Tecnologías
 
-This template does not include any kind of persistence (database). For more advanced examples, check out the [serverless/examples repository](https://github.com/serverless/examples/) which includes Typescript, Mongo, DynamoDB and other examples.
+Este servicio complementa al módulo GET y se despliega de forma independiente.
 
-## Usage
+-   **Stack**: Serverless Framework + AWS Lambda + API Gateway.
+-   **Base de Datos**: MySQL (Escritura y Borrado).
+-   **Seguridad**: Validación de esquemas JSON (Schema Validation) con TypeScript.
 
-### Deployment
+---
 
-In order to deploy the example, you need to run the following command:
+## 📂 Estructura del Proyecto
 
+```text
+Swapi-Lambda-http-api-post/
+├── src/
+│   ├── handlers/             # ⚡ Controladores Lambda
+│   │   ├── createFavorite.ts # INSERT en base de datos
+│   │   ├── deleteFavorite.ts # DELETE en base de datos
+│   │   └── migrateFavorites.ts # CREATE TABLE (Script de inicialización)
+│   ├── services/
+│   │   └── db.service.ts     # Cliente MySQL singleton
+│   ├── models/               # 📦 Modelos de datos
+│   │   └── favorite.model.ts # Interfaz y validación de tipos
+│   └── utils/                # 🛠️ Helpers de respuesta HTTP
+├── serverless.yml            # ⚙️ Configuración de AWS y rutas
+├── package.json
+└── tsconfig.json
 ```
+
+---
+
+## 🚀 Guía de Instalación "Paso a Paso"
+
+### 1. Inicialización
+Clona el repositorio y entra en la carpeta:
+
+```bash
+cd Swapi-Lambda-http-api-post
+npm install
+```
+
+### 2. Configuración de Entorno (.env)
+Crea el archivo `.env` en la raíz. **Es crítico que las credenciales sean las mismas que en el proyecto GET** para compartir la misma base de datos.
+
+**Archivo: `.env`**
+```ini
+DB_HOST=swapi-db.cluster-xyz.us-east-1.rds.amazonaws.com
+DB_USER=admin
+DB_PASSWORD=tu_password_secreto
+DB_NAME=swapi_db
+```
+
+---
+
+## 🛠️ Despliegue y Migración (Setup de Base de Datos)
+
+### Paso 1: Desplegar el código
+Sube las funciones a AWS Lambda:
+
+```bash
 serverless deploy
 ```
 
-After running deploy, you should see output similar to:
+Al terminar, copia la URL que termina en `/api/migrate`.
 
-```
-Deploying "serverless-http-api" to stage "dev" (us-east-1)
+### Paso 2: Inicializar la Base de Datos (Primer uso)
+Para evitar crear tablas manualmente con SQL, hemos creado un endpoint especial.
+Simplemente abre tu navegador o usa Postman y haz una petición GET a:
 
-✔ Service deployed to stack serverless-http-api-dev (91s)
+`https://TU_URL_AWS.amazonaws.com/api/migrate`
 
-endpoint: GET - https://xxxxxxxxxx.execute-api.us-east-1.amazonaws.com/
-functions:
-  hello: serverless-http-api-dev-hello (1.6 kB)
-```
-
-_Note_: In current form, after deployment, your API is public and can be invoked by anyone. For production deployments, you might want to configure an authorizer. For details on how to do that, refer to [HTTP API (API Gateway V2) event docs](https://www.serverless.com/framework/docs/providers/aws/events/http-api).
-
-### Invocation
-
-After successful deployment, you can call the created application via HTTP:
-
-```
-curl https://xxxxxxx.execute-api.us-east-1.amazonaws.com/
-```
-
-Which should result in response similar to:
-
+**Respuesta esperada:**
 ```json
-{ "message": "Go Serverless v4! Your function executed successfully!" }
+{
+  "message": "Tabla 'favorites' creada o verificado con éxito."
+}
 ```
+*¡Listo! Tu base de datos MySQL ahora tiene la tabla necesaria.*
 
-### Local development
+---
 
-The easiest way to develop and test your function is to use the `dev` command:
+## 🔌 Documentación de Endpoints
 
-```
-serverless dev
-```
+### 1. Crear Favorito (POST)
+Guarda un nuevo personaje en la lista de favoritos. El ID debe ser el original de SWAPI para mantener la referencia.
 
-This will start a local emulator of AWS Lambda and tunnel your requests to and from AWS Lambda, allowing you to interact with your function as if it were running in the cloud.
+-   **URL:** `/api/favorites`
+-   **Método:** `POST`
+-   **Body (JSON):**
+    ```json
+    {
+      "id": "1",
+      "name": "Luke Skywalker",
+      "height": "172",
+      "mass": "77",
+      "gender": "male"
+    }
+    ```
+-   **Códigos de Estado:**
+    -   `201 Created`: Guardado exitosamente.
+    -   `400 Bad Request`: Faltan datos obligatorios.
+    -   `500 Error`: Error de base de datos.
 
-Now you can invoke the function as before, but this time the function will be executed locally. Now you can develop your function locally, invoke it, and see the results immediately without having to re-deploy.
+### 2. Eliminar Favorito (DELETE)
+Elimina un personaje de favoritos basándose en su ID.
 
-When you are done developing, don't forget to run `serverless deploy` to deploy the function to the cloud.
+-   **URL:** `/api/favorites/{id}`
+-   **Método:** `DELETE`
+-   **Ejemplo:** `/api/favorites/1`
+-   **Códigos de Estado:**
+    -   `200 OK`: Eliminado correctamente.
+    -   `404 Not Found`: El ID no existía en la base de datos.
+
+---
+
+## 🚑 Solución de Problemas (Troubleshooting)
+
+### Error: `Table 'swapi_db.favorites' doesn't exist`
+-   **Causa:** Intentaste guardar un favorito pero la tabla no existe en la BD.
+-   **Solución:** Ejecuta el endpoint `/api/migrate` una vez para crear la tabla.
+
+### Error: `Access denied for user...`
+-   **Causa:** Usuario o contraseña incorrectos en el archivo `.env`.
+-   **Solución:** Verifica las credenciales. Si cambias el `.env`, **debes ejecutar `serverless deploy` de nuevo** para actualizar las variables en AWS Lambda.
+
+### CORS Error en Frontend
+-   **Causa:** El navegador bloquea la petición.
+-   **Solución:** El archivo `serverless.yml` ya incluye configuración CORS (`allowedOrigins: '*'`). Si falla, verifica que estás llamando a la URL `https` correcta y no a `http`.
+
+---
+
+## 📦 Scripts Disponibles
+
+| Script | Descripción |
+| :--- | :--- |
+| `npm install` | Instala las dependencias del proyecto. |
+| `serverless deploy` | Desplegar la aplicación en AWS. |
+| `serverless remove` | Eliminar el stack completo de AWS (¡Cuidado!). |
+| `npm test` | Ejecutar pruebas unitarias. |
+
+---
+
+**Desarrollado por Adrian Nuñuvero Ochoa con cariño para la Prueba Técnica Seidor 2026**
