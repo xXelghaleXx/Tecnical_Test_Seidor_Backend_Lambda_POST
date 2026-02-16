@@ -1,147 +1,163 @@
-# 🌐 SWAPI Lambda API (POST) - Serverless Service
+🌐 SWAPI Lambda API – Favorites Service (POST)
 
-Bienvenido al microservicio **POST** de la Prueba Técnica Seidor. Este proyecto maneja la persistencia de datos, permitiendo **Guardar** y **Eliminar** personajes favoritos, además de incluir herramientas de **Migración** automática de base de datos.
+Microservicio Serverless encargado de la persistencia de personajes favoritos para la Prueba Técnica Seidor 2026.
 
-## 🏗️ Arquitectura y Tecnologías
+Este servicio permite:
 
-Este servicio complementa al módulo GET y se despliega de forma independiente.
+✅ Crear personajes favoritos
 
--   **Stack**: Serverless Framework + AWS Lambda + API Gateway.
--   **Base de Datos**: MySQL (Escritura y Borrado).
--   **Seguridad**: Validación de esquemas JSON (Schema Validation) con TypeScript.
+✅ Eliminar favoritos
 
----
+✅ Ejecutar migración automática de base de datos
 
-## 📂 Estructura del Proyecto
+Se despliega de forma independiente al módulo GET, pero ambos comparten la misma base de datos MySQL.
 
-```text
+🏗️ Arquitectura
+
+Stack Tecnológico
+
+Backend: AWS Lambda (Node.js + TypeScript)
+
+Infraestructura: Serverless Framework
+
+API: API Gateway (HTTP API)
+
+Base de Datos: MySQL (Amazon RDS)
+
+Validación: JSON Schema + TypeScript Types
+
+Patrón: Arquitectura modular por capas
+
+📂 Estructura del Proyecto
 Swapi-Lambda-http-api-post/
 ├── src/
-│   ├── handlers/             # ⚡ Controladores Lambda
-│   │   ├── createFavorite.ts # INSERT en base de datos
-│   │   ├── deleteFavorite.ts # DELETE en base de datos
-│   │   └── migrateFavorites.ts # CREATE TABLE (Script de inicialización)
+│   ├── handlers/
+│   │   ├── createFavorite.ts
+│   │   ├── deleteFavorite.ts
+│   │   └── migrateFavorites.ts
 │   ├── services/
-│   │   └── db.service.ts     # Cliente MySQL singleton
-│   ├── models/               # 📦 Modelos de datos
-│   │   └── favorite.model.ts # Interfaz y validación de tipos
-│   └── utils/                # 🛠️ Helpers de respuesta HTTP
-├── serverless.yml            # ⚙️ Configuración de AWS y rutas
+│   │   └── db.service.ts
+│   ├── models/
+│   │   └── favorite.model.ts
+│   └── utils/
+│       └── response.util.ts
+├── serverless.yml
 ├── package.json
-└── tsconfig.json
-```
+├── tsconfig.json
+└── README.md
+🚀 Instalación Rápida (5 minutos)
+1️⃣ Prerrequisitos
 
----
+Antes de comenzar, asegúrate de tener instalado:
 
-## 🚀 Guía de Instalación "Paso a Paso"
+Node.js ≥ 18
 
-### 1. Inicialización
-Clona el repositorio y entra en la carpeta:
+Serverless Framework
 
-```bash
+npm install -g serverless
+
+AWS CLI configurado
+
+aws configure
+2️⃣ Clonar e instalar dependencias
+git clone <repo-url>
 cd Swapi-Lambda-http-api-post
 npm install
-```
+3️⃣ Configurar variables de entorno
 
-### 2. Configuración de Entorno (.env)
-Crea el archivo `.env` en la raíz. **Es crítico que las credenciales sean las mismas que en el proyecto GET** para compartir la misma base de datos.
+Crear archivo .env en la raíz del proyecto:
 
-**Archivo: `.env`**
-```ini
 DB_HOST=swapi-db.cluster-xyz.us-east-1.rds.amazonaws.com
 DB_USER=admin
 DB_PASSWORD=tu_password_secreto
 DB_NAME=swapi_db
-```
 
----
+⚠️ Importante:
+Debe usar exactamente las mismas credenciales que el proyecto GET para compartir la base de datos.
 
-## 🛠️ Despliegue y Migración (Setup de Base de Datos)
-
-### Paso 1: Desplegar el código
-Sube las funciones a AWS Lambda:
-
-```bash
+4️⃣ Desplegar en AWS
 serverless deploy
-```
 
-Al terminar, copia la URL que termina en `/api/migrate`.
+Al finalizar, verás algo como:
 
-### Paso 2: Inicializar la Base de Datos (Primer uso)
-Para evitar crear tablas manualmente con SQL, hemos creado un endpoint especial.
-Simplemente abre tu navegador o usa Postman y haz una petición GET a:
+endpoints:
+  POST - https://xxxxx.execute-api.us-east-1.amazonaws.com/api/favorites
+  DELETE - https://xxxxx.execute-api.us-east-1.amazonaws.com/api/favorites/{id}
+  GET - https://xxxxx.execute-api.us-east-1.amazonaws.com/api/migrate
+🛠️ Migración Automática (Primer uso obligatorio)
 
-`https://TU_URL_AWS.amazonaws.com/api/migrate`
+Para crear la tabla favorites, ejecuta:
 
-**Respuesta esperada:**
-```json
+GET https://TU_URL/api/migrate
+
+Respuesta esperada:
+
 {
-  "message": "Tabla 'favorites' creada o verificado con éxito."
+  "message": "Tabla 'favorites' creada o verificada con éxito."
 }
-```
-*¡Listo! Tu base de datos MySQL ahora tiene la tabla necesaria.*
 
----
+Una vez ejecutado, la base de datos queda lista.
 
-## 🔌 Documentación de Endpoints
+🔌 Endpoints
+➕ Crear Favorito
 
-### 1. Crear Favorito (POST)
-Guarda un nuevo personaje en la lista de favoritos. El ID debe ser el original de SWAPI para mantener la referencia.
+POST /api/favorites
 
--   **URL:** `/api/favorites`
--   **Método:** `POST`
--   **Body (JSON):**
-    ```json
-    {
-      "id": "1",
-      "name": "Luke Skywalker",
-      "height": "172",
-      "mass": "77",
-      "gender": "male"
-    }
-    ```
--   **Códigos de Estado:**
-    -   `201 Created`: Guardado exitosamente.
-    -   `400 Bad Request`: Faltan datos obligatorios.
-    -   `500 Error`: Error de base de datos.
+Body
+{
+  "id": "1",
+  "name": "Luke Skywalker",
+  "height": "172",
+  "mass": "77",
+  "gender": "male"
+}
+Respuestas
+Código	Descripción
+201	Favorito creado correctamente
+400	Datos inválidos o incompletos
+500	Error interno de base de datos
+❌ Eliminar Favorito
 
-### 2. Eliminar Favorito (DELETE)
-Elimina un personaje de favoritos basándose en su ID.
+DELETE /api/favorites/{id}
 
--   **URL:** `/api/favorites/{id}`
--   **Método:** `DELETE`
--   **Ejemplo:** `/api/favorites/1`
--   **Códigos de Estado:**
-    -   `200 OK`: Eliminado correctamente.
-    -   `404 Not Found`: El ID no existía en la base de datos.
+Ejemplo:
 
----
+DELETE /api/favorites/1
+Respuestas
+Código	Descripción
+200	Eliminado correctamente
+404	ID no encontrado
+🧠 Consideraciones Técnicas
 
-## 🚑 Solución de Problemas (Troubleshooting)
+Se utiliza Singleton Pattern para la conexión MySQL.
 
-### Error: `Table 'swapi_db.favorites' doesn't exist`
--   **Causa:** Intentaste guardar un favorito pero la tabla no existe en la BD.
--   **Solución:** Ejecuta el endpoint `/api/migrate` una vez para crear la tabla.
+Validación estricta del body mediante tipos TypeScript.
 
-### Error: `Access denied for user...`
--   **Causa:** Usuario o contraseña incorrectos en el archivo `.env`.
--   **Solución:** Verifica las credenciales. Si cambias el `.env`, **debes ejecutar `serverless deploy` de nuevo** para actualizar las variables en AWS Lambda.
+Separación clara por capas: handler → service → model.
 
-### CORS Error en Frontend
--   **Causa:** El navegador bloquea la petición.
--   **Solución:** El archivo `serverless.yml` ya incluye configuración CORS (`allowedOrigins: '*'`). Si falla, verifica que estás llamando a la URL `https` correcta y no a `http`.
+Compatible con despliegue independiente (microservicio real).
 
----
+🧪 Scripts Disponibles
+Comando	Descripción
+npm install	Instalar dependencias
+serverless deploy	Desplegar en AWS
+serverless remove	Eliminar stack completo
+npm test	Ejecutar pruebas
+🚑 Troubleshooting
+❗ Table doesn't exist
 
-## 📦 Scripts Disponibles
+Ejecuta /api/migrate una vez.
 
-| Script | Descripción |
-| :--- | :--- |
-| `npm install` | Instala las dependencias del proyecto. |
-| `serverless deploy` | Desplegar la aplicación en AWS. |
-| `serverless remove` | Eliminar el stack completo de AWS (¡Cuidado!). |
-| `npm test` | Ejecutar pruebas unitarias. |
+❗ Access denied for user
 
----
+Revisa credenciales en .env y vuelve a desplegar:
 
-**Desarrollado por Adrian Nuñuvero Ochoa con cariño para la Prueba Técnica Seidor 2026**
+serverless deploy
+❗ Error CORS
+
+Verifica que estás usando HTTPS y la URL correcta de API Gateway.
+
+📌 Autor
+
+Adrian Nuñuvero Ochoa
+Prueba Técnica – Seidor 2026
