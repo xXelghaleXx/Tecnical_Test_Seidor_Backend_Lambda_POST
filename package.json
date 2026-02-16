@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "test": "jest"
+  },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.160",
     "@types/jest": "^30.0.0",
